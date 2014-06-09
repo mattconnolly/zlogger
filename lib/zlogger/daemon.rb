@@ -46,8 +46,18 @@ module Zlogger
       options[:output] || $stdout
     end
 
+    def pub_socket
+      @pub_socket ||= begin
+        socket = context.socket :PUB
+        socket.bind("tcp://#{bind_address}:#{port.to_i + 1}")
+        socket
+      end
+    end
+
     def log(prefix, line)
-      output.puts("#{Time.now.strftime("%Y%m%d %I:%M:%S.%L")}\t#{prefix}:\t#{line}")
+      formatted = "#{Time.now.strftime("%Y%m%d %I:%M:%S.%L")}\t#{prefix}:\t#{line}"
+      output.puts(formatted)
+      pub_socket.send(formatted)
     end
   end
 end

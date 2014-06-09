@@ -25,14 +25,17 @@ To run the logging daemon:
 And you when messages are sent to the logger, they will appear in STDOUT formatted with the senders name prefixed to
 each line.
 
-To use the logging client in a Ruby process:
+The daemon uses two ZeroMQ sockets:
 
+ * At the bind_address : port => a PULL socket to receive log messages.
+ * At the bind_address : port + 1 => a PUB socket where re-formatted lines of the log are sent to.
+
+To use the logging client in a Ruby process:
 
     require 'zlogger'
 
     logger = Zlogger::Client.new(connect_address, process_prefix)
     logger.debug { "This is a debug message" }
-
 
 The `logger` client object behaves like a standard ruby Logger.
 
