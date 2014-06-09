@@ -17,6 +17,14 @@ module Zlogger
       super(nil)
       @logdev = LogDevice.new(self)
       @logdev.run_socket_thread
+      
+      @formatter = proc do |severity, time, progname, msg|
+        if msg.is_a?(Exception)
+          "#{severity}: #{msg.message} (#{msg.class})\n" + (msg.backtrace || []).join("\n")
+        else
+          "#{severity}: #{msg}"
+        end
+      end
     end
 
     def context
