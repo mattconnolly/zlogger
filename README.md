@@ -34,8 +34,8 @@ To use the logging client in a Ruby process:
 
     require 'zlogger'
 
-    logger = Zlogger::Client.new(connect_address, process_prefix)
-    logger.debug { "This is a debug message" }
+    logger = Zlogger::Client.new
+    logger.debug "log this debug message"
 
 The `logger` client object behaves like a standard ruby Logger.
 
