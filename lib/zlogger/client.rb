@@ -66,7 +66,7 @@ module Zlogger
       def run_socket_thread
         @thread ||= Thread.new do
           begin
-            socket = client.context.socket :PUSH
+            socket = client.context.socket :PUB
             socket.connect("tcp://#{client.connect_address}:#{client.port}")
             loop do
               object = client.queue.pop

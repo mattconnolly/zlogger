@@ -10,7 +10,8 @@ module Zlogger
     end
 
     def run
-      socket = context.socket :PULL
+      socket = context.socket :SUB
+      socket.subscribe ""
       socket.bind("tcp://#{bind_address}:#{port}")
 
       loop do
