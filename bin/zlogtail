@@ -1,0 +1,42 @@
+#!/usr/bin/env ruby
+
+$:.unshift File.expand_path("../../lib", __FILE__)
+require 'zlogger'
+require 'optparse'
+
+# Process options
+options = { :address => '127.0.0.1' }
+
+opts = OptionParser.new do |opts|
+  opts.banner = "Usage: #{$0} [options]\n\n" +
+      "Tail a Zlogger daemon by subscribing to its broadcast of formatted messages"
+
+  opts.separator ""
+  opts.separator "Specific options:"
+
+  opts.on("-c", "--connect ADDRESS",
+          "TCP address to connect to, defaults to 127.0.0.1") do |ext|
+    options[:address] = ext
+  end
+
+  opts.on("-p", "--port PORT", Integer, "Port number to bind to") do |n|
+    options[:port] = n
+  end
+
+  opts.on_tail("-h", "--help", "Show this message") do
+    puts opts
+    exit
+  end
+
+  opts.on_tail("-v", "--version", "Show version") do
+    puts "Zlogger version #{Zlogger::VERSION}"
+    exit
+  end
+end
+
+opts.parse!(ARGV)
+
+# Create Zlogger Reader
+
+logger = Zlogger::Reader.new(options)
+logger.run

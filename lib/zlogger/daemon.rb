@@ -32,7 +32,7 @@ module Zlogger
     end
 
     def context
-      options[:context] ||= ZMQ::Context.new
+      @context ||= (ZMQ.context || ZMQ::Context.new)
     end
 
     def port

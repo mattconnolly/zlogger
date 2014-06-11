@@ -28,7 +28,7 @@ module Zlogger
     end
 
     def context
-      @context ||= options[:context] || ZMQ.context || ZMQ::Context.new
+      @context ||= (ZMQ.context || ZMQ::Context.new)
     end
 
     def queue
