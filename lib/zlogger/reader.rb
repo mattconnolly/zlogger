@@ -13,7 +13,6 @@ module Zlogger
           begin
             socket = context.socket :SUB
             socket.subscribe ""
-            puts "connecting to: tcp://#{address}:#{port}"
             socket.connect("tcp://#{address}:#{port}")
             socket
           end
