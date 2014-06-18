@@ -22,6 +22,14 @@ opts = OptionParser.new do |opts|
     options[:port] = n
   end
 
+  opts.on("-f", '--file FILE', String, "File to write the log to. File is stored under /log folder") do |file|
+    options[:output] = file
+  end
+
+  opts.on("-r", '--rotate', String, "Rotate log file daily") do |file|
+    options[:rotate] = true
+  end
+
   opts.on_tail("-h", "--help", "Show this message") do
     puts opts
     exit
