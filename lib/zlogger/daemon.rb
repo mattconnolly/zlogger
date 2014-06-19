@@ -1,4 +1,6 @@
 require 'rbczmq'
+require 'date'
+require 'pathname'
 
 module Zlogger
   class Daemon
@@ -64,7 +66,7 @@ module Zlogger
       else
         filename = "#{ filename }.log"
       end
-      Pathname.new('log').join(filename).to_s
+      Pathname.new(filename).to_s
     end
 
     def rotate_file
