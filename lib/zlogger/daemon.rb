@@ -70,14 +70,14 @@ module Zlogger
     end
 
     def rotate_file
-      if output_file || log_date < Date.today
+      if log_date < Date.today
         log_date = Date.today
 
-        # closes previews day file
-        output_file.close
+        # closes previous day file
+        output_file.close if output_file # just a fail safe in case that for some reason the output file is nil
 
         # assigns file for the new day to output_file attribute
-        output_file = @output_file = File.new(output_filepath, 'a+')
+        output_file = File.new(output_filepath, 'a+')
       end
     end
 
