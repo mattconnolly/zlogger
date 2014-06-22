@@ -30,6 +30,10 @@ opts = OptionParser.new do |opts|
     options[:rotate] = true
   end
 
+  opts.on("-s", "--stdout", "Echo output to STDOUT (only applicable when -f is used)") do
+    options[:stdout] = true
+  end
+
   opts.on_tail("-h", "--help", "Show this message") do
     puts opts
     exit

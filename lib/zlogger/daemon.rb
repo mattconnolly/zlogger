@@ -4,6 +4,9 @@ require 'pathname'
 
 module Zlogger
   class Daemon
+
+    FLUSH_TIMER = 0.1 # flush the log to disk after this many seconds.
+
     attr :options
     attr_accessor :output_file
     attr_accessor :log_date
@@ -21,17 +24,26 @@ module Zlogger
       socket.subscribe ""
       socket.bind("tcp://#{bind_address}:#{port}")
 
+      poll_item = ZMQ::Pollitem(socket, ZMQ::POLLIN)
+      poller = ZMQ::Poller.new
+      poller.register(poll_item)
+
       loop do
         begin
           rotate_file if options[:rotate]
 
-          message = socket.recv_message
-          prefix = message.pop.to_s
-          buffer = message.pop.to_s
-          buffer.gsub("\r\n", "\n")
-          buffer.split("\n").each do |line|
-            log(prefix, line)
+          poller.poll(FLUSH_TIMER)
+          if poller.readables.include?(socket)
+            message = socket.recv_message
+            prefix = message.pop.to_s
+            buffer = message.pop.to_s
+            buffer.gsub("\r\n", "\n")
+            buffer.split("\n").each do |line|
+              log(prefix, line)
+            end
           end
+
+          flush
 
         rescue Interrupt
           break
@@ -74,10 +86,10 @@ module Zlogger
         log_date = Date.today
 
         # closes previous day file
-        output_file.close if output_file # just a fail safe in case that for some reason the output file is nil
+        @output_file.close if @output_file # just a fail safe in case that for some reason the output file is nil
 
         # assigns file for the new day to output_file attribute
-        output_file = File.new(output_filepath, 'a+')
+        @output_file = File.new(output_filepath, 'a+')
       end
     end
 
@@ -92,7 +104,20 @@ module Zlogger
     def log(prefix, line)
       formatted = "#{Time.now.strftime("%Y%m%d %I:%M:%S.%L")}\t#{prefix}:\t#{line}"
       output.puts(formatted)
+      $stdout.puts(formatted) if options[:stdout] && options[:output]
       pub_socket.send(formatted)
+    end
+
+    # flush the output file only if enough elapsed time has occurred since the last flush. We want the log capture to
+    # be responsive, and reduce the amount of time waiting for synchronous disk i/o.
+    def flush
+      if output
+        now = Time.now
+        if @last_flush.nil? || (now - @last_flush > FLUSH_TIMER)
+          output.flush
+          @last_flush = now
+        end
+      end
     end
   end
 end
