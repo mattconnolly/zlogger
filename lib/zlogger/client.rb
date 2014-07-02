@@ -17,7 +17,7 @@ module Zlogger
       super(nil)
       @logdev = LogDevice.new(self)
       @logdev.run_socket_thread
-      
+
       @formatter = proc do |severity, time, progname, msg|
         if msg.is_a?(Exception)
           "#{severity}: #{msg.message} (#{msg.class})\n" + (msg.backtrace || []).join("\n")
@@ -47,6 +47,14 @@ module Zlogger
       options[:name] || "#{File.basename($0)}:#{Process.pid}"
     end
 
+    def log_device
+      @logdev
+    end
+
+    def close
+      @logdev.close
+    end
+
     class LogDevice
       attr :client
 
@@ -64,22 +72,24 @@ module Zlogger
 
       # it is not threadsafe to access ZMQ sockets, so we only write to the logging socket from a single thread.
       def run_socket_thread
-        @thread ||= Thread.new do
-          begin
-            socket = client.context.socket :PUB
-            socket.connect("tcp://#{client.connect_address}:#{client.port}")
-            loop do
-              object = client.queue.pop
-              break if object == self
-              message = ZMQ::Message.new
-              message.addstr(client.name)
-              message.addstr(object.to_s)
-              socket.send_message(message)
-            end
-            socket.close
-          rescue StandardError => e
-            puts "Logging socket thread error: #{e}"
+        @thread ||= Thread.new { run_socket_loop }
+      end
+
+      def run_socket_loop
+        begin
+          socket = client.context.socket :PUB
+          socket.connect("tcp://#{client.connect_address}:#{client.port}")
+          loop do
+            object = client.queue.pop
+            break if object == self
+            message = ZMQ::Message.new
+            message.addstr(client.name)
+            message.addstr(object.to_s)
+            socket.send_message(message)
           end
+          socket.close
+        rescue StandardError => e
+          puts "Logging socket thread error: #{e}"
         end
       end
     end
