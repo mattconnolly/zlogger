@@ -34,13 +34,13 @@ module Zlogger
 
           poller.poll(FLUSH_TIMER)
           if poller.readables.include?(socket)
-            message = socket.recv_message
-            prefix = message.pop.to_s
-            buffer = message.pop.to_s
-            buffer.gsub("\r\n", "\n")
-            buffer.split("\n").each do |line|
-              log(prefix, line)
-            end
+          message = socket.recv_message
+          prefix = message.pop.to_s
+          buffer = message.pop.to_s
+          buffer.gsub("\r\n", "\n")
+          buffer.split("\n").each do |line|
+            log(prefix, line)
+          end
           end
 
           flush
@@ -82,14 +82,14 @@ module Zlogger
     end
 
     def rotate_file
-      if log_date < Date.today
-        log_date = Date.today
+      if self.log_date < Date.today
+
+        self.log_date = Date.today
 
         # closes previous day file
-        @output_file.close if @output_file # just a fail safe in case that for some reason the output file is nil
-
+        self.output_file.close if output_file # just a fail safe in case that for some reason the output file is nil
         # assigns file for the new day to output_file attribute
-        @output_file = File.new(output_filepath, 'a+')
+        self.output_file = File.new(output_filepath, 'a+')
       end
     end
 
@@ -116,8 +116,8 @@ module Zlogger
         if @last_flush.nil? || (now - @last_flush > FLUSH_TIMER)
           output.flush
           @last_flush = now
-        end
-      end
+  end
+end
     end
   end
 end
